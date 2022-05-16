@@ -73,8 +73,8 @@ bool Format()	//格式化一个虚拟磁盘文件
 
 	//初始化inode位图
 	memset(inode_bitmap,0,sizeof(inode_bitmap));
-	fseek(fw,InodeBitmap_StartAddr,SEEK_SET);
-	fwrite(inode_bitmap,sizeof(inode_bitmap),1,fw);
+	fseek(fw,InodeBitmap_StartAddr,SEEK_SET);//L确定位置开始写入
+	fwrite(inode_bitmap,sizeof(inode_bitmap),1,fw);//L写入函数
 
 	//初始化block位图
 	memset(block_bitmap,0,sizeof(block_bitmap));
@@ -113,10 +113,10 @@ bool Format()	//格式化一个虚拟磁盘文件
 		Inode cur;
 
 		//申请inode
-		int inoAddr = ialloc();
+		int inoAddr = ialloc(); //分配i节点区函数，返回inode地址
 
 		//给这个inode申请磁盘块
-		int blockAddr = balloc();
+		int blockAddr = balloc();//磁盘块分配函数
 
 		//在这个磁盘块里加入一个条目 "."
 		DirItem dirlist[16] = {0};
@@ -150,9 +150,9 @@ bool Format()	//格式化一个虚拟磁盘文件
 		fflush(fw);
 
 	//创建目录及配置文件
-	mkdir(Root_Dir_Addr,"home");	//用户目录
-	cd(Root_Dir_Addr,"home");
-	mkdir(Cur_Dir_Addr,"root");	
+	mkdir(Root_Dir_Addr,"home");	//用户目录//创建目录
+	cd(Root_Dir_Addr,"home");//进入当前目录下的name目录
+	mkdir(Cur_Dir_Addr,"root");		//L目录创建函数。参数：上一层目录文件inode地址 ,要创建的目录名
 
 	cd(Cur_Dir_Addr,"..");
 	mkdir(Cur_Dir_Addr,"etc");	//配置文件目录
@@ -181,12 +181,12 @@ bool Install()	//安装文件系统，将虚拟磁盘文件中的关键信息如超级块读入到内存
 	//读写虚拟磁盘文件，读取超级块，读取inode位图，block位图，读取主目录，读取etc目录，读取管理员admin目录，读取用户xiao目录，读取用户passwd文件。
 
 	//读取超级块
-	fseek(fr,Superblock_StartAddr,SEEK_SET);
+	fseek(fr,Superblock_StartAddr,SEEK_SET);//fseek的作用是设置文件指针的位置，SEEK_SET表示从文件开头开始
 	fread(superblock,sizeof(SuperBlock),1,fr);
 
 	//读取inode位图
 	fseek(fr,InodeBitmap_StartAddr,SEEK_SET);
-	fread(inode_bitmap,sizeof(inode_bitmap),1,fr);
+	fread(inode_bitmap,sizeof(inode_bitmap),1,fr);//fread的作用是从文件中读取数据，读取的数据存放在第一个参数指向中
 
 	//读取block位图
 	fseek(fr,BlockBitmap_StartAddr,SEEK_SET);
@@ -1670,7 +1670,7 @@ bool login()	//登陆界面
 {
 	char username[100] = {0};
 	char passwd[100] = {0};
-	inUsername(username);	//输入用户名
+	inUsername(username);	//输入用户名//L两个输入的用户名和用户密码
 	inPasswd(passwd);		//输入用户密码
 	if(check(username,passwd)){	//核对用户名和密码
 		isLogin = true;
@@ -1682,7 +1682,7 @@ bool login()	//登陆界面
 	}
 }
 
-bool check(char username[],char passwd[])	//核对用户名，密码
+bool check(char username[],char passwd[])	//核对用户名，密码L进入配置文件 将信息提取出来与用户输入的用户名和密码进行配对
 {
 	int passwd_Inode_Addr = -1;	//用户文件inode地址
 	int shadow_Inode_Addr = -1;	//用户密码文件inode地址
@@ -1693,7 +1693,7 @@ bool check(char username[],char passwd[])	//核对用户名，密码
 	int i,j;
 	DirItem dirlist[16];	//临时目录
 
-	cd(Cur_Dir_Addr,"etc");	//进入配置文件目录
+	cd(Cur_Dir_Addr,"etc");	//进入配置文件目录//L打开etc的配置文件
 
 	//找到passwd和shadow文件inode地址，并取出
 	//取出当前目录的inode
@@ -2380,34 +2380,35 @@ void cmd(char str[])	//处理输入的命令
 	char buf[100000];	//最大100K
 	int tmp = 0;
 	int i;
-	sscanf(str,"%s",p1);
-	if(strcmp(p1,"ls")==0){
+	sscanf(str,"%s",p1);//L先读取str的第一个字符串
+	if(strcmp(p1,"ls")==0){//L判断是否显示当前目录
 		ls(Cur_Dir_Addr);	//显示当前目录
 	}
-	else if(strcmp(p1,"cd")==0){
-		sscanf(str,"%s%s",p1,p2);
+	else if(strcmp(p1,"cd")==0){//L判断是否进入目录
+		sscanf(str,"%s%s",p1,p2);//L读取str的第二个字符串
 		cd(Cur_Dir_Addr,p2);	
 	}
-	else if(strcmp(p1,"mkdir")==0){
+	else if(strcmp(p1,"mkdir")==0){//L判断是否创建目录
+		sscanf(str,"%s%s",p1,p2);//L读取str的第二个字符串
+		mkdir(Cur_Dir_Addr,p2);	//L在当前的目录下创建目录
+	}
+	else if(strcmp(p1,"rmdir")==0){//L判断是否删除目录
 		sscanf(str,"%s%s",p1,p2);
-		mkdir(Cur_Dir_Addr,p2);	
+		rmdir(Cur_Dir_Addr,p2);	//L在当前的目录下删除目录
 	}
-	else if(strcmp(p1,"rmdir")==0){
-		sscanf(str,"%s%s",p1,p2);
-		rmdir(Cur_Dir_Addr,p2);	
+	else if(strcmp(p1,"super")==0){//L判断是否显示超级块
+		printSuperBlock();//L显示超级块
 	}
-	else if(strcmp(p1,"super")==0){
-		printSuperBlock();
-	}
-	else if(strcmp(p1,"inode")==0){
+	else if(strcmp(p1,"inode")==0){//L判断是否显示inode位图
 		printInodeBitmap();
 	}
-	else if(strcmp(p1,"block")==0){
+	else if(strcmp(p1,"block")==0){//L判断是否显示block位图
 		sscanf(str,"%s%s",p1,p2);
 		tmp = 0;
 		if('0'<=p2[0] && p2[0]<='9'){
-			for(i=0;p2[i];i++)
-				tmp = tmp*10+p2[i]-'0';
+			tmp=atoi(p2);
+			// for(i=0;p2[i];i++)
+			// 	tmp = tmp*10+p2[i]-'0';
 			printBlockBitmap(tmp);
 		}
 		else

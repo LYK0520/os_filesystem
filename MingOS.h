@@ -1,3 +1,9 @@
+#ifndef _TEST_H_
+#define _TEST_H_
+
+
+
+
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
@@ -149,3 +155,4 @@ void touch(int parinoAddr,char name[],char buf[]);				//touchÃüÁî´´½¨ÎÄ¼ş£¬¶ÁÈë×
 void help();													//ÏÔÊ¾ËùÓĞÃüÁîÇåµ¥
 
 void cmd(char str[]);											//´¦ÀíÊäÈëµÄÃüÁî
+#endif

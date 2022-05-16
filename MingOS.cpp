@@ -1,4 +1,5 @@
 #include "MingOS.h"
+#include"os_funs.cpp"
 using namespace std;
 
 //全局变量定义
@@ -41,25 +42,27 @@ int main()
 {
 	//打开虚拟磁盘文件 
 	if( (fr = fopen(FILESYSNAME,"rb"))==NULL){	//只读打开虚拟磁盘文件（二进制文件）
+		//L创建一个虚拟磁盘文件叫做，"MingOS.sys"
 		//虚拟磁盘文件不存在，创建一个
+		//L打开失败就关闭程序
 		fw = fopen(FILESYSNAME,"wb");	//只写打开虚拟磁盘文件（二进制文件）
 		if(fw==NULL){
 			printf("虚拟磁盘文件打开失败\n");
 			return 0;	//打开文件失败
 		}
 		fr = fopen(FILESYSNAME,"rb");	//现在可以打开了
-
+		//fopen的作用是打开文件，用于读写 如果文件不存在，则创建文件
 		//初始化变量
 		nextUID = 0;
 		nextGID = 0;
 		isLogin = false;
-		strcpy(Cur_User_Name,"root");
+		strcpy(Cur_User_Name,"root");//复制字符串
 		strcpy(Cur_Group_Name,"root");
 
 		//获取主机名
 		memset(Cur_Host_Name,0,sizeof(Cur_Host_Name));  
 		DWORD k= 100;  
-		GetComputerName(Cur_Host_Name,&k);
+		GetComputerName(Cur_Host_Name,&k);//获取主机名
 
 		//根目录inode地址 ，当前目录地址和名字
 		Root_Dir_Addr = Inode_StartAddr;	//第一个inode地址
@@ -67,7 +70,7 @@ int main()
 		strcpy(Cur_Dir_Name,"/");
 
 		printf("文件系统正在格式化……\n");
-		if(!Format()){
+		if(!Format()){//格式化一个虚拟磁盘文件
 			printf("文件系统格式化失败\n");
 			return 0;
 		}
@@ -137,12 +140,12 @@ int main()
 				printf("[%s@%s %s]# ",Cur_Host_Name,Cur_User_Name,Cur_Dir_Name);	
 			else
 				printf("[%s@%s ~%s]# ",Cur_Host_Name,Cur_User_Name,Cur_Dir_Name+strlen(Cur_User_Dir_Name));	
-			gets(str);
-			cmd(str);
+			gets(str);//读取命令行
+			cmd(str);//对有效的命令行响应对应的操作
 		}
 		else{	
 			printf("欢迎来到MingOS，请先登录\n");
-			while(!login());	//登陆
+			while(!login());	//登陆//L登陆界面账户名和密码
 			printf("登陆成功！\n");
 			//system("pause");
 			system("cls");
