@@ -8,18 +8,18 @@ void Ready()	//登录系统前的准备工作,变量初始化+注册+安装
 	nextUID = 0;
 	nextGID = 0;
 	isLogin = false;
-	strcpy(Cur_User_Name,"root");
-	strcpy(Cur_Group_Name,"root");
+	strcpy(Cur_User_Name,"root");//当前用户名
+	strcpy(Cur_Group_Name,"root");//当前用户组
 
 	//获取主机名
-	memset(Cur_Host_Name,0,sizeof(Cur_Host_Name));  
+	memset(Cur_Host_Name,0,sizeof(Cur_Host_Name));  //获取主机名
 	DWORD k= 100;  
 	GetComputerName(Cur_Host_Name,&k);
 
 	//根目录inode地址 ，当前目录地址和名字
 	Root_Dir_Addr = Inode_StartAddr;	//第一个inode地址
-	Cur_Dir_Addr = Root_Dir_Addr;
-	strcpy(Cur_Dir_Name,"/");
+	Cur_Dir_Addr = Root_Dir_Addr;//当前的目录地址Root
+	strcpy(Cur_Dir_Name,"/");//当前目录名字
 
 
 	char c;
@@ -29,21 +29,21 @@ void Ready()	//登录系统前的准备工作,变量初始化+注册+安装
 		if(c=='y'){
 			printf("\n");
 			printf("文件系统正在格式化……\n");
-			if(!Format()){
+			if(!Format()){//将文件系统格式化
 				printf("文件系统格式化失败\n");
 				return ;
 			}
 			printf("格式化完成\n");
 			break;
 		}
-		else if(c=='n'){
+		else if(c=='n'){//不格式化
 			printf("\n");
 			break;
 		}
 	}
 
 	//printf("载入文件系统……\n");
-	if(!Install()){			
+	if(!Install()){			//安装文件系统
 		printf("安装文件系统失败\n");
 		return ;
 	}
@@ -55,31 +55,31 @@ bool Format()	//格式化一个虚拟磁盘文件
 	int i,j;
 
 	//初始化超级块
-	superblock->s_INODE_NUM = INODE_NUM;
-	superblock->s_BLOCK_NUM = BLOCK_NUM;
-	superblock->s_SUPERBLOCK_SIZE = sizeof(SuperBlock);
-	superblock->s_INODE_SIZE = INODE_SIZE;
-	superblock->s_BLOCK_SIZE = BLOCK_SIZE;
-	superblock->s_free_INODE_NUM = INODE_NUM;
-	superblock->s_free_BLOCK_NUM = BLOCK_NUM;
-	superblock->s_blocks_per_group = BLOCKS_PER_GROUP;
+	superblock->s_INODE_NUM = INODE_NUM;//inode数量
+	superblock->s_BLOCK_NUM = BLOCK_NUM;//块数量
+	superblock->s_SUPERBLOCK_SIZE = sizeof(SuperBlock);//超级块大小
+	superblock->s_INODE_SIZE = INODE_SIZE;//inode大小
+	superblock->s_BLOCK_SIZE = BLOCK_SIZE;//块大小
+	superblock->s_free_INODE_NUM = INODE_NUM;//空闲inode数量
+	superblock->s_free_BLOCK_NUM = BLOCK_NUM;//空闲块数量
+	superblock->s_blocks_per_group = BLOCKS_PER_GROUP;//每组块数
 	superblock->s_free_addr = Block_StartAddr;	//空闲块堆栈指针为第一块block
-	superblock->s_Superblock_StartAddr = Superblock_StartAddr;
-	superblock->s_BlockBitmap_StartAddr = BlockBitmap_StartAddr;
-	superblock->s_InodeBitmap_StartAddr = InodeBitmap_StartAddr;
-	superblock->s_Block_StartAddr = Block_StartAddr;
-	superblock->s_Inode_StartAddr = Inode_StartAddr;
+	superblock->s_Superblock_StartAddr = Superblock_StartAddr;//超级块地址
+	superblock->s_BlockBitmap_StartAddr = BlockBitmap_StartAddr;//块位图地址
+	superblock->s_InodeBitmap_StartAddr = InodeBitmap_StartAddr;//inode位图地址
+	superblock->s_Block_StartAddr = Block_StartAddr;//块地址
+	superblock->s_Inode_StartAddr = Inode_StartAddr;//inode地址
 	//空闲块堆栈在后面赋值
 
 	//初始化inode位图
-	memset(inode_bitmap,0,sizeof(inode_bitmap));
+	memset(inode_bitmap,0,sizeof(inode_bitmap));//inode位图的值全部设置为0
 	fseek(fw,InodeBitmap_StartAddr,SEEK_SET);//L确定位置开始写入
 	fwrite(inode_bitmap,sizeof(inode_bitmap),1,fw);//L写入函数
 
 	//初始化block位图
-	memset(block_bitmap,0,sizeof(block_bitmap));
-	fseek(fw,BlockBitmap_StartAddr,SEEK_SET);
-	fwrite(block_bitmap,sizeof(block_bitmap),1,fw);
+	memset(block_bitmap,0,sizeof(block_bitmap));//block位图的值全部设置为0
+	fseek(fw,BlockBitmap_StartAddr,SEEK_SET);//L确定位置开始写入
+	fwrite(block_bitmap,sizeof(block_bitmap),1,fw);//L写入函数
 	
 	//初始化磁盘块区，根据成组链接法组织	
 	for(i=BLOCK_NUM/BLOCKS_PER_GROUP-1;i>=0;i--){	//一共INODE_NUM/BLOCKS_PER_GROUP组，一组FREESTACKNUM（128）个磁盘块 ，第一个磁盘块作为索引
@@ -88,77 +88,77 @@ bool Format()	//格式化一个虚拟磁盘文件
 		else
 			superblock->s_free[0] = Block_StartAddr + (i+1)*BLOCKS_PER_GROUP*BLOCK_SIZE;	//指向下一个空闲块
 		for(j=1;j<BLOCKS_PER_GROUP;j++){
-			superblock->s_free[j] = Block_StartAddr + (i*BLOCKS_PER_GROUP + j)*BLOCK_SIZE;
+			superblock->s_free[j] = Block_StartAddr + (i*BLOCKS_PER_GROUP + j)*BLOCK_SIZE;//指向下一个空闲块
 		}
-		fseek(fw,Block_StartAddr+i*BLOCKS_PER_GROUP*BLOCK_SIZE,SEEK_SET);
+		fseek(fw,Block_StartAddr+i*BLOCKS_PER_GROUP*BLOCK_SIZE,SEEK_SET);//L确定位置开始写入
 		fwrite(superblock->s_free,sizeof(superblock->s_free),1,fw);	//填满这个磁盘块，512字节
 	}
 	//超级块写入到虚拟磁盘文件
-	fseek(fw,Superblock_StartAddr,SEEK_SET);
-	fwrite(superblock,sizeof(SuperBlock),1,fw);
+	fseek(fw,Superblock_StartAddr,SEEK_SET);//L确定位置开始写入
+	fwrite(superblock,sizeof(SuperBlock),1,fw);//L写入函数
 
-	fflush(fw);
+	fflush(fw);//刷新缓冲区
 
 	//读取inode位图
-	fseek(fr,InodeBitmap_StartAddr,SEEK_SET);
-	fread(inode_bitmap,sizeof(inode_bitmap),1,fr);
+	fseek(fr,InodeBitmap_StartAddr,SEEK_SET);//L确定位置开始读取
+	fread(inode_bitmap,sizeof(inode_bitmap),1,fr);//L读取函数
 
 	//读取block位图
-	fseek(fr,BlockBitmap_StartAddr,SEEK_SET);
-	fread(block_bitmap,sizeof(block_bitmap),1,fr);
+	fseek(fr,BlockBitmap_StartAddr,SEEK_SET);//	L确定位置开始读取
+	fread(block_bitmap,sizeof(block_bitmap),1,fr);//L读取函数
 
-	fflush(fr);
+	fflush(fr);//刷新缓冲区
 
 	//创建根目录 "/"
 		Inode cur;
 
 		//申请inode
-		int inoAddr = ialloc(); //分配i节点区函数，返回inode地址
+		int inoAddr = ialloc(); //L分配i节点区函数，返回inode地址
 
 		//给这个inode申请磁盘块
-		int blockAddr = balloc();//磁盘块分配函数
+		int blockAddr = balloc();//L磁盘块分配函数
 
 		//在这个磁盘块里加入一个条目 "."
-		DirItem dirlist[16] = {0};
+		DirItem dirlist[16] = {0};//L初始化一个空目录
 		strcpy(dirlist[0].itemName,".");
-		dirlist[0].inodeAddr = inoAddr;
+		dirlist[0].inodeAddr = inoAddr;//L设置inode地址
 
 		//写回磁盘块
-		fseek(fw,blockAddr,SEEK_SET);	
-		fwrite(dirlist,sizeof(dirlist),1,fw);
+		fseek(fw,blockAddr,SEEK_SET);	//L确定位置开始写入
+		fwrite(dirlist,sizeof(dirlist),1,fw);//L写入函数
 
 		//给inode赋值
-		cur.i_ino = 0;
-		cur.i_atime = time(NULL);
-		cur.i_ctime = time(NULL);
-		cur.i_mtime = time(NULL);
-		strcpy(cur.i_uname,Cur_User_Name);
-		strcpy(cur.i_gname,Cur_Group_Name);
+		cur.i_ino = 0;//L设置inode号
+		cur.i_atime = time(NULL);//L设置文件打开最后访问时间
+		cur.i_ctime = time(NULL);//L设置inode最后修改时间
+		cur.i_mtime = time(NULL);//L设置文件内容最后修改时间
+		strcpy(cur.i_uname,Cur_User_Name);//L设置用户名
+		strcpy(cur.i_gname,Cur_Group_Name);//L设置用户组名
 		cur.i_cnt = 1;	//一个项，当前目录,"."
-		cur.i_dirBlock[0] = blockAddr;
+		cur.i_dirBlock[0] = blockAddr;//L设置第一个目录块地址
 		for(i=1;i<10;i++){
 			cur.i_dirBlock[i] = -1;
 		}
-		cur.i_size = superblock->s_BLOCK_SIZE;
+		cur.i_size = superblock->s_BLOCK_SIZE;//L设置文件大小
 		cur.i_indirBlock_1 = -1;	//没使用一级间接块
-		cur.i_mode = MODE_DIR | DIR_DEF_PERMISSION;
+		cur.i_mode = MODE_DIR | DIR_DEF_PERMISSION;//L设置文件权限
 
 
 		//写回inode
-		fseek(fw,inoAddr,SEEK_SET);	
-		fwrite(&cur,sizeof(Inode),1,fw);
-		fflush(fw);
+		fseek(fw,inoAddr,SEEK_SET);	//L确定位置开始写入
+		fwrite(&cur,sizeof(Inode),1,fw);//L写入函数
+		fflush(fw);//刷新缓冲区
 
 	//创建目录及配置文件
 	mkdir(Root_Dir_Addr,"home");	//用户目录//创建目录
 	cd(Root_Dir_Addr,"home");//进入当前目录下的name目录
 	mkdir(Cur_Dir_Addr,"root");		//L目录创建函数。参数：上一层目录文件inode地址 ,要创建的目录名
-
-	cd(Cur_Dir_Addr,"..");
+	//用户的密码和账户 以及管理员的一个账户密码都存储在/etc/passwd文件中 用于登录时的存取以及后续管理的管理查看等等	
+	cd(Cur_Dir_Addr,"..");//返回上一层目录
 	mkdir(Cur_Dir_Addr,"etc");	//配置文件目录
-	cd(Cur_Dir_Addr,"etc");
+	cd(Cur_Dir_Addr,"etc");//进入当前目录下的name目录
 
-	char buf[1000] = {0};
+	char buf[1000] = {0};//L初始化一个空缓冲区
 	
 	sprintf(buf,"root:x:%d:%d\n",nextUID++,nextGID++);	//增加条目，用户名：加密密码：用户ID：用户组ID
 	create(Cur_Dir_Addr,"passwd",buf);	//创建用户信息文件
@@ -182,15 +182,15 @@ bool Install()	//安装文件系统，将虚拟磁盘文件中的关键信息如超级块读入到内存
 
 	//读取超级块
 	fseek(fr,Superblock_StartAddr,SEEK_SET);//fseek的作用是设置文件指针的位置，SEEK_SET表示从文件开头开始
-	fread(superblock,sizeof(SuperBlock),1,fr);
+	fread(superblock,sizeof(SuperBlock),1,fr);//fread的作用是从文件中读取数据，读取一个数据块
 
 	//读取inode位图
-	fseek(fr,InodeBitmap_StartAddr,SEEK_SET);
+	fseek(fr,InodeBitmap_StartAddr,SEEK_SET);//fseek的作用是设置文件指针的位置，SEEK_SET表示从文件开头开始
 	fread(inode_bitmap,sizeof(inode_bitmap),1,fr);//fread的作用是从文件中读取数据，读取的数据存放在第一个参数指向中
 
 	//读取block位图
-	fseek(fr,BlockBitmap_StartAddr,SEEK_SET);
-	fread(block_bitmap,sizeof(block_bitmap),1,fr);
+	fseek(fr,BlockBitmap_StartAddr,SEEK_SET);//fseek的作用是设置文件指针的位置，SEEK_SET表示从文件开头开始
+	fread(block_bitmap,sizeof(block_bitmap),1,fr);//fread的作用是从文件中读取数据，读取的数据存放在第一个参数指向中
 
 	return true;
 }
@@ -198,17 +198,17 @@ bool Install()	//安装文件系统，将虚拟磁盘文件中的关键信息如超级块读入到内存
 void printSuperBlock()		//打印超级块信息
 {
 	printf("\n");
-	printf("空闲inode数 / 总inode数 ：%d / %d\n",superblock->s_free_INODE_NUM,superblock->s_INODE_NUM);
-	printf("空闲block数 / 总block数 ：%d / %d\n",superblock->s_free_BLOCK_NUM,superblock->s_BLOCK_NUM);
-	printf("本系统 block大小：%d 字节，每个inode占 %d 字节（真实大小：%d 字节）\n",superblock->s_BLOCK_SIZE,superblock->s_INODE_SIZE,sizeof(Inode));
-	printf("\t每磁盘块组（空闲堆栈）包含的block数量：%d\n",superblock->s_blocks_per_group);
-	printf("\t超级块占 %d 字节（真实大小：%d 字节）\n",superblock->s_BLOCK_SIZE,superblock->s_SUPERBLOCK_SIZE);
+	printf("空闲inode数 / 总inode数 ：%d / %d\n",superblock->s_free_INODE_NUM,superblock->s_INODE_NUM);//空闲inode数 / 总inode数
+	printf("空闲block数 / 总block数 ：%d / %d\n",superblock->s_free_BLOCK_NUM,superblock->s_BLOCK_NUM);//空闲block数 / 总block数
+	printf("本系统 block大小：%d 字节，每个inode占 %d 字节（真实大小：%d 字节）\n",superblock->s_BLOCK_SIZE,superblock->s_INODE_SIZE,sizeof(Inode));//本系统 block大小：block大小，每个inode占 inode大小（真实大小：inode大小）
+	printf("\t每磁盘块组（空闲堆栈）包含的block数量：%d\n",superblock->s_blocks_per_group);//每磁盘块组（空闲堆栈）包含的block数量
+	printf("\t超级块占 %d 字节（真实大小：%d 字节）\n",superblock->s_BLOCK_SIZE,superblock->s_SUPERBLOCK_SIZE);//超级块占 block大小（真实大小：超级块大小）
 	printf("磁盘分布：\n");
-	printf("\t超级块开始位置：%d B\n",superblock->s_Superblock_StartAddr);
-	printf("\tinode位图开始位置：%d B\n",superblock->s_InodeBitmap_StartAddr);
-	printf("\tblock位图开始位置：%d B\n",superblock->s_BlockBitmap_StartAddr);
-	printf("\tinode区开始位置：%d B\n",superblock->s_Inode_StartAddr);
-	printf("\tblock区开始位置：%d B\n",superblock->s_Block_StartAddr);
+	printf("\t超级块开始位置：%d B\n",superblock->s_Superblock_StartAddr);//超级块开始位置
+	printf("\tinode位图开始位置：%d B\n",superblock->s_InodeBitmap_StartAddr);//inode位图开始位置
+	printf("\tblock位图开始位置：%d B\n",superblock->s_BlockBitmap_StartAddr);//block位图开始位置
+	printf("\tinode区开始位置：%d B\n",superblock->s_Inode_StartAddr);//inode区开始位置
+	printf("\tblock区开始位置：%d B\n",superblock->s_Block_StartAddr);//
 	printf("\n");
 
 	return ;
@@ -217,19 +217,19 @@ void printSuperBlock()		//打印超级块信息
 void printInodeBitmap()	//打印inode使用情况
 {
 	printf("\n");
-	printf("inode使用表：[uesd:%d %d/%d]\n",superblock->s_INODE_NUM-superblock->s_free_INODE_NUM,superblock->s_free_INODE_NUM,superblock->s_INODE_NUM);
+	printf("inode使用表：[uesd:%d %d/%d]\n",superblock->s_INODE_NUM-superblock->s_free_INODE_NUM,superblock->s_free_INODE_NUM,superblock->s_INODE_NUM);//inode使用表：[uesd:inode数-空闲inode数/inode数]
 	int i;
 	i = 0;
 	printf("0 ");
-	while(i<superblock->s_INODE_NUM){
-		if(inode_bitmap[i])
+	while(i<superblock->s_INODE_NUM){//打印inode使用情况
+		if(inode_bitmap[i])//inode使用
 			printf("*");
 		else
 			printf(".");
 		i++;
 		if(i!=0 && i%32==0){
 			printf("\n");
-			if(i!=superblock->s_INODE_NUM)
+			if(i!=superblock->s_INODE_NUM)//如果i!=inode数，则打印空格
 				printf("%d ",i/32);
 		}
 	}
@@ -241,21 +241,21 @@ void printInodeBitmap()	//打印inode使用情况
 void printBlockBitmap(int num)	//打印block使用情况
 {
 	printf("\n");
-	printf("block（磁盘块）使用表：[used:%d %d/%d]\n",superblock->s_BLOCK_NUM-superblock->s_free_BLOCK_NUM,superblock->s_free_BLOCK_NUM,superblock->s_BLOCK_NUM);
+	printf("block（磁盘块）使用表：[used:%d %d/%d]\n",superblock->s_BLOCK_NUM-superblock->s_free_BLOCK_NUM,superblock->s_free_BLOCK_NUM,superblock->s_BLOCK_NUM);//block（磁盘块）使用表：[used:block数-空闲block数/block数]
 	int i;
 	i = 0;
 	printf("0 ");
 	while(i<num){
-		if(block_bitmap[i])
+		if(block_bitmap[i])//block使用
 			printf("*");
 		else
 			printf(".");
 		i++;
 		if(i!=0 && i%32==0){
 			printf("\n");
-			if(num==superblock->s_BLOCK_NUM)
+			if(num==superblock->s_BLOCK_NUM)//如果num=block数，则打印空格//!这里存在getchar并且持续的读取
 				getchar();
-			if(i!=superblock->s_BLOCK_NUM)
+			if(i!=superblock->s_BLOCK_NUM)//如果i!=block数，则打印i/32
 				printf("%d ",i/32);
 		}
 	}
@@ -266,22 +266,23 @@ void printBlockBitmap(int num)	//打印block使用情况
 
 int balloc()	//磁盘块分配函数
 {
+	//参照成组链接法如何读取使用空闲块的方式去进行分配
 	//使用超级块中的空闲块堆栈
 	//计算当前栈顶
 	int top;	//栈顶指针
-	if(superblock->s_free_BLOCK_NUM==0){	//剩余空闲块数为0
+	if(superblock->s_free_BLOCK_NUM==0){	//剩余空闲块数为0//如果超级块中现实的剩余空闲块数为零，则返回-1
 		printf("没有空闲块可以分配\n");
 		return -1;	//没有可分配的空闲块，返回-1
 	}
-	else{	//还有剩余块
+	else{	//还有剩余块//分配栈顶指针的位置
 		top = (superblock->s_free_BLOCK_NUM-1) % superblock->s_blocks_per_group;
 	}
 	//将栈顶取出
 	//如果已是栈底，将当前块号地址返回，即为栈底块号，并将栈底指向的新空闲块堆栈覆盖原来的栈
 	int retAddr;
-
+	//下面是还有空闲块的情况，具体是如何分配的
 	if(top==0){
-		retAddr = superblock->s_free_addr;
+		retAddr = superblock->s_free_addr;//返回栈顶的地址
 		superblock->s_free_addr = superblock->s_free[0];	//取出下一个存有空闲块堆栈的空闲块的位置，更新空闲块堆栈指针
 		
 		//取出对应空闲块内容，覆盖原来的空闲块堆栈
@@ -291,7 +292,7 @@ int balloc()	//磁盘块分配函数
 		fread(superblock->s_free,sizeof(superblock->s_free),1,fr);
 		fflush(fr);
 
-		superblock->s_free_BLOCK_NUM--;
+		superblock->s_free_BLOCK_NUM--;//更新超级块中空闲块数
 
 	}
 	else{	//如果不为栈底，则将栈顶指向的地址返回，栈顶指针-1.
@@ -303,15 +304,15 @@ int balloc()	//磁盘块分配函数
 	}
 
 	//更新超级块
-	fseek(fw,Superblock_StartAddr,SEEK_SET);
-	fwrite(superblock,sizeof(SuperBlock),1,fw);
-	fflush(fw);
+	fseek(fw,Superblock_StartAddr,SEEK_SET);//将文件指针移动到超级块的位置
+	fwrite(superblock,sizeof(SuperBlock),1,fw);//将超级块写入文件
+	fflush(fw);//将缓冲区内容写入文件
 
 	//更新block位图
 	block_bitmap[(retAddr-Block_StartAddr)/BLOCK_SIZE] = 1;
 	fseek(fw,(retAddr-Block_StartAddr)/BLOCK_SIZE+BlockBitmap_StartAddr,SEEK_SET);	//(retAddr-Block_StartAddr)/BLOCK_SIZE为第几个空闲块
-	fwrite(&block_bitmap[(retAddr-Block_StartAddr)/BLOCK_SIZE],sizeof(bool),1,fw);
-	fflush(fw);
+	fwrite(&block_bitmap[(retAddr-Block_StartAddr)/BLOCK_SIZE],sizeof(bool),1,fw);//将空闲块位图写入文件
+	fflush(fw);//将缓冲区内容写入文件
 
 	return retAddr;
 
@@ -328,10 +329,10 @@ bool bfree(int addr)	//磁盘块释放函数
 	unsigned int bno = (addr-Block_StartAddr) / superblock->s_BLOCK_SIZE;	//inode节点号
 	//该地址还未使用，不能释放空间
 	if(block_bitmap[bno]==0){
-		printf("该block（磁盘块）还未使用，无法释放\n");
+		printf("该block（磁盘块）还未使用，无法释放\n");//该地址还未使用，不能释放空间
 		return false;
 	}	
-
+	//以下时可以释放磁盘块的情况，一样是成组链接法的一个操作
 	//可以释放
 	//计算当前栈顶
 	int top;	//栈顶指针
@@ -350,12 +351,12 @@ bool bfree(int addr)	//磁盘块释放函数
 		if(top == superblock->s_blocks_per_group-1){	//该栈已满
 
 			//该空闲块作为新的空闲块堆栈
-			superblock->s_free[0] = superblock->s_free_addr;	//新的空闲块堆栈第一个地址指向旧的空闲块堆栈指针
+			superblock->s_free[0] = superblock->s_free_addr;	//新的空闲块堆栈第一个地址指向旧的空闲块堆栈指针接到空余块的链接里面
 			int i;
 			for(i=1;i<superblock->s_blocks_per_group;i++){
 				superblock->s_free[i] = -1;	//清空栈元素的其它地址
 			}
-			fseek(fw,addr,SEEK_SET);
+			fseek(fw,addr,SEEK_SET);//将文件指针移动到空闲块堆栈的起始地址
 			fwrite(superblock->s_free,sizeof(superblock->s_free),1,fw);	//填满这个磁盘块，512字节
 			
 		}
@@ -368,14 +369,14 @@ bool bfree(int addr)	//磁盘块释放函数
 
 	//更新超级块
 	superblock->s_free_BLOCK_NUM++;	//空闲块数+1
-	fseek(fw,Superblock_StartAddr,SEEK_SET);
-	fwrite(superblock,sizeof(SuperBlock),1,fw);
+	fseek(fw,Superblock_StartAddr,SEEK_SET);//将文件指针移动到超级块的位置
+	fwrite(superblock,sizeof(SuperBlock),1,fw);//将超级块写入文件
 
 	//更新block位图
 	block_bitmap[bno] = 0;
 	fseek(fw,bno+BlockBitmap_StartAddr,SEEK_SET);	//(addr-Block_StartAddr)/BLOCK_SIZE为第几个空闲块
-	fwrite(&block_bitmap[bno],sizeof(bool),1,fw);
-	fflush(fw);
+	fwrite(&block_bitmap[bno],sizeof(bool),1,fw);//将空闲块位图写入文件
+	fflush(fw);//将缓冲区内容写入文件
 
 	return true;
 }
@@ -387,7 +388,7 @@ int ialloc()	//分配i节点区函数，返回inode地址
 		printf("没有空闲inode可以分配\n");
 		return -1;
 	}
-	else{
+	else{//L顺序的查找到空闲的inode返回并且进行分配的同时去更新超级块以及inode位图
 			
 		//顺序查找空闲的inode
 		int i;
@@ -414,40 +415,40 @@ int ialloc()	//分配i节点区函数，返回inode地址
 
 bool ifree(int addr)	//释放i结点区函数
 {
-	//判断
+	//判断 如果提供的地址错误 返回
 	if( (addr-Inode_StartAddr) % superblock->s_INODE_SIZE != 0 ){
 		printf("地址错误,该位置不是i节点起始位置\n");
 		return false;
 	}
 	unsigned short ino = (addr-Inode_StartAddr) / superblock->s_INODE_SIZE;	//inode节点号
-	if(inode_bitmap[ino]==0){
+	if(inode_bitmap[ino]==0){//如果该inode还没有释放则不需要进行释放的一个操作
 		printf("该inode还未使用，无法释放\n");
 		return false;
 	}	
 	
 	//清空inode内容
 	Inode tmp = {0};
-	fseek(fw,addr,SEEK_SET);	
-	fwrite(&tmp,sizeof(tmp),1,fw);
+	fseek(fw,addr,SEEK_SET);	//将文件指针移动到inode的起始地址
+	fwrite(&tmp,sizeof(tmp),1,fw);//将inode内容清空
 
 	//更新超级块
-	superblock->s_free_INODE_NUM++;	
+	superblock->s_free_INODE_NUM++;	//空闲inode数+1
 	//空闲inode数+1
-	fseek(fw,Superblock_StartAddr,SEEK_SET);
-	fwrite(superblock,sizeof(SuperBlock),1,fw);
+	fseek(fw,Superblock_StartAddr,SEEK_SET);//	将文件指针移动到超级块的起始地址
+	fwrite(superblock,sizeof(SuperBlock),1,fw);//将超级块写入文件
 
 	//更新inode位图
 	inode_bitmap[ino] = 0;
-	fseek(fw,InodeBitmap_StartAddr+ino,SEEK_SET);	
-	fwrite(&inode_bitmap[ino],sizeof(bool),1,fw);
-	fflush(fw);
+	fseek(fw,InodeBitmap_StartAddr+ino,SEEK_SET);	//	将文件指针移动到inode位图的起始地址
+	fwrite(&inode_bitmap[ino],sizeof(bool),1,fw);//将inode位图写入文件
+	fflush(fw);//将缓冲区内容写入文件
 
 	return true;
 }
 
 bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode地址 ,要创建的目录名
 {
-	if(strlen(name)>=MAX_NAME_SIZE){
+	if(strlen(name)>=MAX_NAME_SIZE){//如果目录名长度超过最大长度则返回
 		printf("超过最大目录名长度\n");
 		return false;
 	}
@@ -456,8 +457,8 @@ bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode
 
 	//从这个地址取出inode
 	Inode cur;
-	fseek(fr,parinoAddr,SEEK_SET);	
-	fread(&cur,sizeof(Inode),1,fr);
+	fseek(fr,parinoAddr,SEEK_SET);	//将文件指针移动到inode的起始地址
+	fread(&cur,sizeof(Inode),1,fr);//将inode内容读出
 	
 	int i = 0;
 	int cnt = cur.i_cnt+1;	//目录项数
@@ -471,8 +472,8 @@ bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode
 			continue;
 		}
 		//取出这个直接块，要加入的目录条目的位置
-		fseek(fr,cur.i_dirBlock[dno],SEEK_SET);	
-		fread(dirlist,sizeof(dirlist),1,fr);
+		fseek(fr,cur.i_dirBlock[dno],SEEK_SET);	//将文件指针移动到直接块的起始地址
+		fread(dirlist,sizeof(dirlist),1,fr);//将直接块内容读出
 		fflush(fr);
 
 		//输出该磁盘块中的所有目录项
@@ -481,19 +482,19 @@ bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode
 
 			if( strcmp(dirlist[j].itemName,name)==0 ){
 				Inode tmp;
-				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);	
-				fread(&tmp,sizeof(Inode),1,fr);
-				if( ((tmp.i_mode>>9)&1)==1 ){	//不是目录
+				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);	//将文件指针移动到inode的起始地址
+				fread(&tmp,sizeof(Inode),1,fr);//将inode内容读出
+				if( ((tmp.i_mode>>9)&1)==1 ){	//不是目录！>>9不知道什么意思
 					printf("目录已存在\n");
 					return false;
 				}
 			}
-			else if( strcmp(dirlist[j].itemName,"")==0 ){
+			else if( strcmp(dirlist[j].itemName,"")==0 ){//空目录项
 				//找到一个空闲记录，将新目录创建到这个位置 
 				//记录这个位置
 				if(posi==-1){
-					posi = dno;
-					posj = j;
+					posi = dno;//直接块号
+					posj = j;//目录项号
 				}
 
 			}
@@ -506,9 +507,9 @@ bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode
 	if(posi!=-1){	//找到这个空闲位置
 
 		//取出这个直接块，要加入的目录条目的位置
-		fseek(fr,cur.i_dirBlock[posi],SEEK_SET);	
-		fread(dirlist,sizeof(dirlist),1,fr);
-		fflush(fr);
+		fseek(fr,cur.i_dirBlock[posi],SEEK_SET);	//将文件指针移动到直接块的起始地址
+		fread(dirlist,sizeof(dirlist),1,fr);//将直接块内容读出
+		fflush(fr);//将缓冲区内容写入文件
 
 		//创建这个目录项
 		strcpy(dirlist[posj].itemName,name);	//目录名
@@ -523,15 +524,15 @@ bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode
 			//设置新条目的inode
 			Inode p;
 			p.i_ino = (chiinoAddr-Inode_StartAddr)/superblock->s_INODE_SIZE;
-			p.i_atime = time(NULL);
-			p.i_ctime = time(NULL);
-			p.i_mtime = time(NULL);
+			p.i_atime = time(NULL);//最后访问时间
+			p.i_ctime = time(NULL);//创建时间
+			p.i_mtime = time(NULL);//最后修改时间
 			strcpy(p.i_uname,Cur_User_Name);
 			strcpy(p.i_gname,Cur_Group_Name);
 			p.i_cnt = 2;	//两个项，当前目录,"."和".."
 
 				//分配这个inode的磁盘块，在磁盘号中写入两条记录 . 和 ..
-				int curblockAddr = balloc();
+				int curblockAddr = balloc();//分配磁盘块
 				if(curblockAddr==-1){
 					printf("block分配失败\n");
 					return false;
@@ -543,15 +544,15 @@ bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode
 				dirlist2[1].inodeAddr = parinoAddr;	//父目录inode地址
 
 				//写入到当前目录的磁盘块
-				fseek(fw,curblockAddr,SEEK_SET);	
-				fwrite(dirlist2,sizeof(dirlist2),1,fw);
+				fseek(fw,curblockAddr,SEEK_SET);	//	将文件指针移动到直接块的起始地址
+				fwrite(dirlist2,sizeof(dirlist2),1,fw);//将直接块内容写入文件
 
 			p.i_dirBlock[0] = curblockAddr;
 			int k;
 			for(k=1;k<10;k++){
-				p.i_dirBlock[k] = -1;
+				p.i_dirBlock[k] = -1;//其他直接块清0
 			}
-			p.i_size = superblock->s_BLOCK_SIZE;
+			p.i_size = superblock->s_BLOCK_SIZE;//文件大小
 			p.i_indirBlock_1 = -1;	//没使用一级间接块
 			p.i_mode = MODE_DIR | DIR_DEF_PERMISSION;
 
@@ -560,13 +561,13 @@ bool mkdir(int parinoAddr,char name[])	//目录创建函数。参数：上一层目录文件inode
 			fwrite(&p,sizeof(Inode),1,fw);
 
 		//将当前目录的磁盘块写回
-		fseek(fw,cur.i_dirBlock[posi],SEEK_SET);	
-		fwrite(dirlist,sizeof(dirlist),1,fw);
+		fseek(fw,cur.i_dirBlock[posi],SEEK_SET);//将文件指针移动到直接块的起始地址	
+		fwrite(dirlist,sizeof(dirlist),1,fw);//将直接块内容写入文件
 
 		//写回inode
 		cur.i_cnt++;
-		fseek(fw,parinoAddr,SEEK_SET);	
-		fwrite(&cur,sizeof(Inode),1,fw);
+		fseek(fw,parinoAddr,SEEK_SET);	//	将文件指针移动到直接块的起始地址
+		fwrite(&cur,sizeof(Inode),1,fw);//将直接块内容写入文件
 		fflush(fw);
 		
 		return true;
@@ -2221,7 +2222,7 @@ bool userdel(char username[])	//用户删除
 	
 }
 
-void chmod(int parinoAddr,char name[],int pmode)	//修改文件或目录权限
+void chmod(int parinoAddr,char name[],int pmode)	//修改文件或目录权限//文件名称以及pmode
 {
 	if(strlen(name)>=MAX_NAME_SIZE){
 		printf("超过最大目录名长度\n");
@@ -2233,8 +2234,8 @@ void chmod(int parinoAddr,char name[],int pmode)	//修改文件或目录权限
 	}
 	//取出该文件或目录inode
 	Inode cur,fileInode;
-	fseek(fr,parinoAddr,SEEK_SET);	
-	fread(&cur,sizeof(Inode),1,fr);
+	fseek(fr,parinoAddr,SEEK_SET);//将文件指针移动到该目录的inode
+	fread(&cur,sizeof(Inode),1,fr);//读取该目录的inode
 
 	//依次取出磁盘块
 	int i = 0,j;
@@ -2254,8 +2255,8 @@ void chmod(int parinoAddr,char name[],int pmode)	//修改文件或目录权限
 		for(j=0;j<16;j++){
 			if( strcmp(dirlist[j].itemName,name)==0 ){	//找到该目录或者文件
 				//取出对应的inode
-				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);	
-				fread(&fileInode,sizeof(Inode),1,fr);
+				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);//将文件指针移动到该目录的inode	
+				fread(&fileInode,sizeof(Inode),1,fr);//读取该目录的inode
 				fflush(fr);
 				goto label;
 			}
@@ -2267,8 +2268,7 @@ label:
 		printf("文件不存在\n");
 		return ;
 	}
-
-	//判断是否是本用户
+	//判断是否是本用户或者是一个管理员的权限
 	if(strcmp(Cur_User_Name,fileInode.i_uname)!=0 && strcmp(Cur_User_Name,"root")!=0){
 		printf("权限不足\n");
 		return ;
@@ -2278,9 +2278,9 @@ label:
 	fileInode.i_mode  = (fileInode.i_mode>>9<<9) | pmode;	//修改权限
 
 	//将inode写回磁盘
-	fseek(fw,dirlist[j].inodeAddr,SEEK_SET);	
-	fwrite(&fileInode,sizeof(Inode),1,fw);
-	fflush(fw);
+	fseek(fw,dirlist[j].inodeAddr,SEEK_SET);	//将文件指针移动到该目录的inode
+	fwrite(&fileInode,sizeof(Inode),1,fw);//读取该目录的inode
+	fflush(fw);//刷新缓冲区
 }
 
 void touch(int parinoAddr,char name[],char buf[])	//touch命令创建文件，读入字符
@@ -2426,13 +2426,13 @@ void cmd(char str[])	//处理输入的命令
 		sscanf(str,"%s%s",p1,p2);
 		del(Cur_Dir_Addr,p2);
 	}
-	else if(strcmp(p1,"cls")==0){
+	else if(strcmp(p1,"cls")==0){//L简单的清屏命令
 		system("cls");
 	}
-	else if(strcmp(p1,"logout")==0){
+	else if(strcmp(p1,"logout")==0){//L用户注销,退出登陆
 		logout();
 	}
-	else if(strcmp(p1,"useradd")==0){
+	else if(strcmp(p1,"useradd")==0){//L新增用户
 		p2[0] = '\0';
 		sscanf(str,"%s%s",p1,p2);
 		if(strlen(p2)==0){
@@ -2442,7 +2442,7 @@ void cmd(char str[])	//处理输入的命令
 			useradd(p2);
 		}
 	}
-	else if(strcmp(p1,"userdel")==0){
+	else if(strcmp(p1,"userdel")==0){//L删除用户
 		p2[0] = '\0';
 		sscanf(str,"%s%s",p1,p2);
 		if(strlen(p2)==0){
@@ -2452,7 +2452,7 @@ void cmd(char str[])	//处理输入的命令
 			userdel(p2);
 		}
 	}
-	else if(strcmp(p1,"chmod")==0){
+	else if(strcmp(p1,"chmod")==0){//L修改文件或目录权限
 		p2[0] = '\0';
 		p3[0] = '\0';
 		sscanf(str,"%s%s%s",p1,p2,p3);
@@ -2466,10 +2466,10 @@ void cmd(char str[])	//处理输入的命令
 			chmod(Cur_Dir_Addr,p2,tmp);
 		}
 	}
-	else if(strcmp(p1,"help")==0){
+	else if(strcmp(p1,"help")==0){//L显示帮助信息
 		help();
 	}
-	else if(strcmp(p1,"format")==0){
+	else if(strcmp(p1,"format")==0){//L格式化磁盘
 		if(strcmp(Cur_User_Name,"root")!=0){
 			printf("权限不足：您需要root权限\n");
 			return ;
