@@ -582,24 +582,24 @@ void rmall(int parinoAddr)	//É¾³ı¸Ã½ÚµãÏÂËùÓĞÎÄ¼ş»òÄ¿Â¼
 {
 	//´ÓÕâ¸öµØÖ·È¡³öinode
 	Inode cur;
-	fseek(fr,parinoAddr,SEEK_SET);	
-	fread(&cur,sizeof(Inode),1,fr);
+	fseek(fr,parinoAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+	fread(&cur,sizeof(Inode),1,fr); //½«inodeÄÚÈİ¶Á³ö
 
 	//È¡³öÄ¿Â¼ÏîÊı
 	int cnt = cur.i_cnt;
 	if(cnt<=2){
-		bfree(cur.i_dirBlock[0]);
-		ifree(parinoAddr);
+		bfree(cur.i_dirBlock[0]); //ÊÍ·Å¸Ã½ÚµãµÄ´ÅÅÌ¿é
+		ifree(parinoAddr);        //ÊÍ·Å¸Ã½ÚµãµÄinode
 		return ;
 	}
 
 	//ÒÀ´ÎÈ¡³ö´ÅÅÌ¿é
 	int i = 0;
 	while(i<160){	//Ğ¡ÓÚ160
-		DirItem dirlist[16] = {0};
+		DirItem dirlist[16] = {0};//L³õÊ¼»¯Ò»¸ö¿ÕÄ¿Â¼
 
 		if(cur.i_dirBlock[i/16]==-1){
-			i+=16;
+			i+=16;  //Ö±½Ó¿éÎª-1,Ìø¹ı¸Ã¿é
 			continue;
 		}
 		//È¡³ö´ÅÅÌ¿é
@@ -612,7 +612,7 @@ void rmall(int parinoAddr)	//É¾³ı¸Ã½ÚµãÏÂËùÓĞÎÄ¼ş»òÄ¿Â¼
 		bool f = false;
 		for(j=0;j<16;j++){
 			//Inode tmp;
-
+			//ÅĞ¶¨²»ÊÇ¡°.¡± ¡°..¡± ¡°¡± Õâ¼¸¸öÌØÊâÏî
 			if( ! (strcmp(dirlist[j].itemName,".")==0 || 
 						strcmp(dirlist[j].itemName,"..")==0 || 
 						strcmp(dirlist[j].itemName,"")==0 ) ){
@@ -637,20 +637,20 @@ void rmall(int parinoAddr)	//É¾³ı¸Ã½ÚµãÏÂËùÓĞÎÄ¼ş»òÄ¿Â¼
 
 bool rmdir(int parinoAddr,char name[])	//Ä¿Â¼É¾³ıº¯Êı
 {
-	if(strlen(name)>=MAX_NAME_SIZE){
+	if(strlen(name)>=MAX_NAME_SIZE){    //ÅĞ¶ÏÊÇ·ñ³öÏÖÄ¿Â¼Ãû³¬³¤
 		printf("³¬¹ı×î´óÄ¿Â¼Ãû³¤¶È\n");
 		return false;
 	}
 
-	if(strcmp(name,".")==0 || strcmp(name,"..")==0){
+	if(strcmp(name,".")==0 || strcmp(name,"..")==0){  //ÅĞ¶ÏÊÇ·ñÎª¡°.¡±»ò¡°..¡±µÈÌØÊâÏî
 		printf("´íÎó²Ù×÷\n");
 		return 0;
 	}
 
 	//´ÓÕâ¸öµØÖ·È¡³öinode
 	Inode cur;
-	fseek(fr,parinoAddr,SEEK_SET);	
-	fread(&cur,sizeof(Inode),1,fr);
+	fseek(fr,parinoAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+	fread(&cur,sizeof(Inode),1,fr); //½«inodeÄÚÈİ¶Á³ö
 
 	//È¡³öÄ¿Â¼ÏîÊı
 	int cnt = cur.i_cnt;
@@ -674,16 +674,16 @@ bool rmdir(int parinoAddr,char name[])	//Ä¿Â¼É¾³ıº¯Êı
 	//ÒÀ´ÎÈ¡³ö´ÅÅÌ¿é
 	int i = 0;
 	while(i<160){	//Ğ¡ÓÚ160
-		DirItem dirlist[16] = {0};
+		DirItem dirlist[16] = {0};//³õÊ¼»¯Ò»¸ö¿ÕÄ¿Â¼
 
 		if(cur.i_dirBlock[i/16]==-1){
-			i+=16;
+			i+=16;  //Ö±½Ó¿éÎª-1,Ìø¹ı¸Ã¿é
 			continue;
 		}
 		//È¡³ö´ÅÅÌ¿é
 		int parblockAddr = cur.i_dirBlock[i/16];
-		fseek(fr,parblockAddr,SEEK_SET);	
-		fread(&dirlist,sizeof(dirlist),1,fr);
+		fseek(fr,parblockAddr,SEEK_SET);	 //½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+		fread(&dirlist,sizeof(dirlist),1,fr);//½«inodeÄÚÈİ¶Á³ö
 
 		//ÕÒµ½ÒªÉ¾³ıµÄÄ¿Â¼
 		int j;
@@ -697,18 +697,18 @@ bool rmdir(int parinoAddr,char name[])	//Ä¿Â¼É¾³ıº¯Êı
 				if( ( (tmp.i_mode>>9) & 1 ) == 1 ){	//ÕÒµ½Ä¿Â¼
 					//ÊÇÄ¿Â¼
 
-					rmall(dirlist[j].inodeAddr);
+					rmall(dirlist[j].inodeAddr);  //É¾³ı¸ÃÄ¿Â¼ÏÂµÄËùÓĞÎÄ¼ş
 
 					//É¾³ı¸ÃÄ¿Â¼ÌõÄ¿£¬Ğ´»Ø´ÅÅÌ
-					strcpy(dirlist[j].itemName,"");
-					dirlist[j].inodeAddr = -1;
-					fseek(fw,parblockAddr,SEEK_SET);	
-					fwrite(&dirlist,sizeof(dirlist),1,fw);
-					cur.i_cnt--;
-					fseek(fw,parinoAddr,SEEK_SET);	
-					fwrite(&cur,sizeof(Inode),1,fw);
+					strcpy(dirlist[j].itemName,"");  //½«Ä¿Â¼Ãû³ÆÖÃ¿Õ
+					dirlist[j].inodeAddr = -1;  //Çå³ıÄ¿Â¼inodeµÄµØÖ·
+					fseek(fw,parblockAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+					fwrite(&dirlist,sizeof(dirlist),1,fw);  //Ğ´ÈëÎÄ¼ş
+					cur.i_cnt--;  //¼õÉÙÄ¿Ç°ÒÑÓÃinodeµÄÊıÁ¿
+					fseek(fw,parinoAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+					fwrite(&cur,sizeof(Inode),1,fw);  //Ğ´ÈëÎÄ¼ş
 
-					fflush(fw);
+					fflush(fw);  //Ë¢ĞÂĞ´Èë»º³åÇø
 					return true;
 				}
 				else{
@@ -735,12 +735,12 @@ bool create(int parinoAddr,char name[],char buf[])	//´´½¨ÎÄ¼şº¯Êı£¬ÔÚ¸ÃÄ¿Â¼ÏÂ´´½
 
 	//´ÓÕâ¸öµØÖ·È¡³öinode
 	Inode cur;
-	fseek(fr,parinoAddr,SEEK_SET);	
-	fread(&cur,sizeof(Inode),1,fr);
+	fseek(fr,parinoAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+	fread(&cur,sizeof(Inode),1,fr); //½«inodeÄÚÈİ¶Á³ö
 	
 	int i = 0;
 	int posi = -1,posj = -1;	//ÕÒµ½µÄÄ¿Â¼Î»ÖÃ
-	int dno;
+	int dno;  //Ö±½Ó¿éµÄ¿éÊı
 	int cnt = cur.i_cnt+1;	//Ä¿Â¼ÏîÊı
 	while(i<160){
 		//160¸öÄ¿Â¼ÏîÖ®ÄÚ£¬¿ÉÒÔÖ±½ÓÔÚÖ±½Ó¿éÀïÕÒ
@@ -750,9 +750,9 @@ bool create(int parinoAddr,char name[],char buf[])	//´´½¨ÎÄ¼şº¯Êı£¬ÔÚ¸ÃÄ¿Â¼ÏÂ´´½
 			i+=16;
 			continue;
 		}
-		fseek(fr,cur.i_dirBlock[dno],SEEK_SET);	
-		fread(dirlist,sizeof(dirlist),1,fr);
-		fflush(fr);
+		fseek(fr,cur.i_dirBlock[dno],SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½Ö±½Ó¿éµÄÆğÊ¼µØÖ·
+		fread(dirlist,sizeof(dirlist),1,fr);    //½«Ö±½Ó¿éÄÚÈİ¶Á³ö
+		fflush(fr);  //Ë¢ĞÂ¶ÁÈ¡»º´æÇø
 
 		//Êä³ö¸Ã´ÅÅÌ¿éÖĞµÄËùÓĞÄ¿Â¼Ïî
 		int j;
@@ -780,9 +780,9 @@ bool create(int parinoAddr,char name[],char buf[])	//´´½¨ÎÄ¼şº¯Êı£¬ÔÚ¸ÃÄ¿Â¼ÏÂ´´½
 	}
 	if(posi!=-1){	//Ö®Ç°ÕÒµ½Ò»¸öÄ¿Â¼ÏîÁË
 		//È¡³öÖ®Ç°ÄÇ¸ö¿ÕÏĞÄ¿Â¼Ïî¶ÔÓ¦µÄ´ÅÅÌ¿é
-		fseek(fr,cur.i_dirBlock[posi],SEEK_SET);	
-		fread(dirlist,sizeof(dirlist),1,fr);
-		fflush(fr);
+		fseek(fr,cur.i_dirBlock[posi],SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½´ÅÅÌ¿éµÄÆğÊ¼µØÖ·
+		fread(dirlist,sizeof(dirlist),1,fr);		//½«´ÅÅÌ¿éÄÚÈİ¶Á³ö
+		fflush(fr);  //Ë¢ĞÂ¶ÁÈ¡»º´æÇø
 
 		//´´½¨Õâ¸öÄ¿Â¼Ïî
 		strcpy(dirlist[posj].itemName,name);	//ÎÄ¼şÃû
@@ -810,7 +810,7 @@ bool create(int parinoAddr,char name[],char buf[])	//´´½¨ÎÄ¼şº¯Êı£¬ÔÚ¸ÃÄ¿Â¼ÏÂ´´½
 				for(k=0;k<len;k+=superblock->s_BLOCK_SIZE){	//×î¶à10´Î£¬10¸ö´ÅÅÌ¿ì£¬¼´×î¶à5K
 					//·ÖÅäÕâ¸öinodeµÄ´ÅÅÌ¿é£¬´Ó¿ØÖÆÌ¨¶ÁÈ¡ÄÚÈİ
 					int curblockAddr = balloc();
-					if(curblockAddr==-1){
+					if(curblockAddr==-1){  //´ÅÅÌ¿éµÄµØÖ·²»´æÔÚ£¬±íÃ÷·ÖÅäÊ§°Ü
 						printf("block·ÖÅäÊ§°Ü\n");
 						return false;
 					}
@@ -826,7 +826,7 @@ bool create(int parinoAddr,char name[],char buf[])	//´´½¨ÎÄ¼şº¯Êı£¬ÔÚ¸ÃÄ¿Â¼ÏÂ´´½
 			}
 			if(len==0){	//³¤¶ÈÎª0µÄ»°Ò²·Ö¸øËüÒ»¸öblock
 				int curblockAddr = balloc();
-				if(curblockAddr==-1){
+				if(curblockAddr==-1){  //´ÅÅÌ¿éµÄµØÖ·²»´æÔÚ£¬±íÃ÷·ÖÅäÊ§°Ü
 					printf("block·ÖÅäÊ§°Ü\n");
 					return false;
 				}
@@ -893,17 +893,17 @@ bool del(int parinoAddr,char name[])		//É¾³ıÎÄ¼şº¯Êı¡£ÔÚµ±Ç°Ä¿Â¼ÏÂÉ¾³ıÎÄ¼ş
 
 	//ÒÀ´ÎÈ¡³ö´ÅÅÌ¿é
 	int i = 0;
-	while(i<160){	//Ğ¡ÓÚ160
+	while(i<160){	//Ğ¡ÓÚ160£¬¿ÉÒÔÖ±½ÓÔÚÖ±½Ó¿éÀïÕÒ
 		DirItem dirlist[16] = {0};
 
 		if(cur.i_dirBlock[i/16]==-1){
-			i+=16;
+			i+=16;  //Ö±½Ó¿éÎª-1,Ìø¹ı¸Ã¿é
 			continue;
 		}
 		//È¡³ö´ÅÅÌ¿é
 		int parblockAddr = cur.i_dirBlock[i/16];
-		fseek(fr,parblockAddr,SEEK_SET);	
-		fread(&dirlist,sizeof(dirlist),1,fr);
+		fseek(fr,parblockAddr,SEEK_SET);	 //½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½´ÅÅÌ¿éµÄÆğÊ¼µØÖ·
+		fread(&dirlist,sizeof(dirlist),1,fr);//½«´ÅÅÌ¿éÄÚÈİ¶Á³ö
 
 		//ÕÒµ½ÒªÉ¾³ıµÄÄ¿Â¼
 		int pos;
@@ -980,10 +980,10 @@ void ls(int parinoAddr)		//ÏÔÊ¾µ±Ç°Ä¿Â¼ÏÂµÄËùÓĞÎÄ¼şºÍÎÄ¼ş¼Ğ¡£²ÎÊı£ºµ±Ç°Ä¿Â¼µÄino
 
 	//ÒÀ´ÎÈ¡³ö´ÅÅÌ¿é
 	int i = 0;
-	while(i<cnt && i<160){
+	while(i<cnt && i<160){//160ÏîÒÔÄÚ£¬¿ÉÒÔÖ±½ÓÔÚÖ±½Ó¿éÀïÕÒ
 		DirItem dirlist[16] = {0};
 		if(cur.i_dirBlock[i/16]==-1){
-			i+=16;
+			i+=16;  //Ö±½Ó¿éÎª-1,Ìø¹ı¸Ã¿é
 			continue;
 		}
 		//È¡³ö´ÅÅÌ¿é
@@ -1014,18 +1014,18 @@ void ls(int parinoAddr)		//ÏÔÊ¾µ±Ç°Ä¿Â¼ÏÂµÄËùÓĞÎÄ¼şºÍÎÄ¼ş¼Ğ¡£²ÎÊı£ºµ±Ç°Ä¿Â¼µÄino
 			}
 
 			tm *ptr;	//´æ´¢Ê±¼ä
-			ptr=gmtime(&tmp.i_mtime);
+			ptr=gmtime(&tmp.i_mtime);  //¼ÇÂ¼ĞŞ¸ÄÊ±¼ä
 
 			//Êä³öÈ¨ÏŞĞÅÏ¢
 			int t = 8;
 			while(t>=0){
 				if( ((tmp.i_mode>>t)&1)==1){
-					if(t%3==2)	printf("r");
-					if(t%3==1)	printf("w");
-					if(t%3==0)	printf("x");
+					if(t%3==2)	printf("r"); //Ö»¶Á
+					if(t%3==1)	printf("w"); //¿ÉĞ´
+					if(t%3==0)	printf("x"); //ÍêÈ«¿ØÖÆ
 				}
 				else{
-					printf("-");
+					printf("-"); //ÎŞÈ¨ÏŞ
 				}
 				t--;
 			}
@@ -1051,8 +1051,8 @@ void cd(int parinoAddr,char name[])	//½øÈëµ±Ç°Ä¿Â¼ÏÂµÄnameÄ¿Â¼
 {
 	//È¡³öµ±Ç°Ä¿Â¼µÄinode
 	Inode cur;
-	fseek(fr,parinoAddr,SEEK_SET);	
-	fread(&cur,sizeof(Inode),1,fr);
+	fseek(fr,parinoAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+	fread(&cur,sizeof(Inode),1,fr); 	//½«inodeÄÚÈİ¶Á³ö
 
 	//ÒÀ´ÎÈ¡³öinode¶ÔÓ¦µÄ´ÅÅÌ¿é£¬²éÕÒÓĞÃ»ÓĞÃû×ÖÎªnameµÄÄ¿Â¼Ïî
 	int i = 0;
@@ -1070,15 +1070,15 @@ void cd(int parinoAddr,char name[])	//½øÈëµ±Ç°Ä¿Â¼ÏÂµÄnameÄ¿Â¼
 		filemode = 0;
 
 	while(i<160){
-		DirItem dirlist[16] = {0};
+		DirItem dirlist[16] = {0};//160ÏîÒÔÄÚ£¬¿ÉÒÔÖ±½ÓÔÚÖ±½Ó¿éÀïÕÒ
 		if(cur.i_dirBlock[i/16]==-1){
-			i+=16;
+			i+=16;//Ö±½Ó¿éÎª-1,Ìø¹ı¸Ã¿é
 			continue;
 		}
 		//È¡³ö´ÅÅÌ¿é
 		int parblockAddr = cur.i_dirBlock[i/16];
-		fseek(fr,parblockAddr,SEEK_SET);	
-		fread(&dirlist,sizeof(dirlist),1,fr);
+		fseek(fr,parblockAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½´ÅÅÌ¿éµÄÆğÊ¼µØÖ·
+		fread(&dirlist,sizeof(dirlist),1,fr);//½«´ÅÅÌ¿éÄÚÈİ¶Á³ö
 
 		//Êä³ö¸Ã´ÅÅÌ¿éÖĞµÄËùÓĞÄ¿Â¼Ïî
 		int j;
@@ -1086,8 +1086,8 @@ void cd(int parinoAddr,char name[])	//½øÈëµ±Ç°Ä¿Â¼ÏÂµÄnameÄ¿Â¼
 			if(strcmp(dirlist[j].itemName,name)==0){
 				Inode tmp;
 				//È¡³ö¸ÃÄ¿Â¼ÏîµÄinode£¬ÅĞ¶Ï¸ÃÄ¿Â¼ÏîÊÇÄ¿Â¼»¹ÊÇÎÄ¼ş
-				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);	
-				fread(&tmp,sizeof(Inode),1,fr);
+				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+				fread(&tmp,sizeof(Inode),1,fr);//½«inodeÄÚÈİ¶Á³ö
 
 				if( ( (tmp.i_mode>>9) & 1 ) == 1 ){
 					//ÕÒµ½¸ÃÄ¿Â¼£¬ÅĞ¶ÏÊÇ·ñ¾ßÓĞ½øÈëÈ¨ÏŞ
@@ -1107,16 +1107,16 @@ void cd(int parinoAddr,char name[])	//½øÈëµ±Ç°Ä¿Â¼ÏÂµÄnameÄ¿Â¼
 						//ÉÏÒ»´ÎÄ¿Â¼
 						int k;
 						for(k=strlen(Cur_Dir_Name);k>=0;k--)
-							if(Cur_Dir_Name[k]=='/')
+							if(Cur_Dir_Name[k]=='/') //»Øµ½¸ùÄ¿Â¼£¬ÖÕÖ¹Ñ­»·
 								break;
 						Cur_Dir_Name[k]='\0';
-						if(strlen(Cur_Dir_Name)==0)
+						if(strlen(Cur_Dir_Name)==0) //µ±Ç°Ä¿Â¼³¤¶ÈÎªÁã£¬Ôò´¦ÓÚ¸ùÄ¿Â¼
 							Cur_Dir_Name[0]='/',Cur_Dir_Name[1]='\0';
 					}
 					else{
-						if(Cur_Dir_Name[strlen(Cur_Dir_Name)-1]!='/')
-							strcat(Cur_Dir_Name,"/");
-						strcat(Cur_Dir_Name,dirlist[j].itemName);
+						if(Cur_Dir_Name[strlen(Cur_Dir_Name)-1]!='/') //Èç¹ûÃ»ÓĞ´ò¡°/¡±
+							strcat(Cur_Dir_Name,"/"); //¼ÓÉÏ¡°/¡±
+						strcat(Cur_Dir_Name,dirlist[j].itemName); //½«Ä¿Â¼ÃûÁ¬½ÓÆğÀ´
 					}
 
 					return ;
@@ -1143,7 +1143,7 @@ void gotoxy(HANDLE hOut, int x, int y)	//ÒÆ¶¯¹â±êµ½Ö¸¶¨Î»ÖÃ
       COORD pos;
       pos.X = x;             //ºá×ø±ê
       pos.Y = y;            //×İ×ø±ê
-      SetConsoleCursorPosition(hOut, pos);
+      SetConsoleCursorPosition(hOut, pos); //ÉèÖÃ¿ØÖÆÌ¨µÄ¹â±êÎ»ÖÃ
 }
 
 void vi(int parinoAddr,char name[],char buf[])	//Ä£ÄâÒ»¸ö¼òµ¥vi£¬ÊäÈëÎÄ±¾£¬nameÎªÎÄ¼şÃû
@@ -1163,8 +1163,8 @@ void vi(int parinoAddr,char name[],char buf[])	//Ä£ÄâÒ»¸ö¼òµ¥vi£¬ÊäÈëÎÄ±¾£¬nameÎ
 
 	//´ÓÕâ¸öµØÖ·È¡³öinode
 	Inode cur,fileInode;
-	fseek(fr,parinoAddr,SEEK_SET);	
-	fread(&cur,sizeof(Inode),1,fr);
+	fseek(fr,parinoAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+	fread(&cur,sizeof(Inode),1,fr); //½«inodeÄÚÈİ¶Á³ö
 
 	//ÅĞ¶ÏÎÄ¼şÄ£Ê½¡£6Îªowner£¬3Îªgroup£¬0Îªother
 	int filemode;
@@ -1176,7 +1176,7 @@ void vi(int parinoAddr,char name[],char buf[])	//Ä£ÄâÒ»¸ö¼òµ¥vi£¬ÊäÈëÎÄ±¾£¬nameÎ
 		filemode = 0;
 	
 	int i = 0,j;
-	int dno;
+	int dno; //Ö±½Ó¿éµÄ¿éºÅ
 	int fileInodeAddr = -1;	//ÎÄ¼şµÄinodeµØÖ·
 	bool isExist = false;	//ÎÄ¼şÊÇ·ñÒÑ´æÔÚ
 	while(i<160){
@@ -1184,23 +1184,23 @@ void vi(int parinoAddr,char name[],char buf[])	//Ä£ÄâÒ»¸ö¼òµ¥vi£¬ÊäÈëÎÄ±¾£¬nameÎ
 		dno = i/16;	//ÔÚµÚ¼¸¸öÖ±½Ó¿éÀï
 
 		if(cur.i_dirBlock[dno]==-1){
-			i+=16;
+			i+=16; //Ö±½Ó¿éÎª-1,Ìø¹ı¸Ã¿é
 			continue;
 		}
-		fseek(fr,cur.i_dirBlock[dno],SEEK_SET);	
-		fread(dirlist,sizeof(dirlist),1,fr);
+		fseek(fr,cur.i_dirBlock[dno],SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½´ÅÅÌ¿éµÄÆğÊ¼µØÖ·
+		fread(dirlist,sizeof(dirlist),1,fr);    //½«´ÅÅÌ¿éµÄÄÚÈİ¶Á³ö
 		fflush(fr);
 
 		//Êä³ö¸Ã´ÅÅÌ¿éÖĞµÄËùÓĞÄ¿Â¼Ïî
 		for(j=0;j<16;j++){
 			if(strcmp(dirlist[j].itemName,name)==0 ){
 				//ÖØÃû£¬È¡³öinode£¬ÅĞ¶ÏÊÇ·ñÊÇÎÄ¼ş
-				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);	
-				fread(&fileInode,sizeof(Inode),1,fr);
+				fseek(fr,dirlist[j].inodeAddr,SEEK_SET);	//½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½inodeµÄÆğÊ¼µØÖ·
+				fread(&fileInode,sizeof(Inode),1,fr);       //½«inodeÄÚÈİ¶Á³ö
 				if( ((fileInode.i_mode>>9)&1)==0 ){	//ÊÇÎÄ¼şÇÒÖØÃû£¬´ò¿ªÕâ¸öÎÄ¼ş£¬²¢±à¼­	
-					fileInodeAddr = dirlist[j].inodeAddr;
-					isExist = true;
-					goto label;
+					fileInodeAddr = dirlist[j].inodeAddr;   //½«ÎÄ¼şµÄinodeÉèÖÃÎªÈ¡³öµÄinode
+					isExist = true;    //µ±Ç°±à¼­µÄÎÄ¼şÊÇ´æÔÚµÄ
+					goto label;  //Dijkstra£¬Ìá³ö¡°gotoÓĞº¦ÂÛ¡±
 				}
 			}
 			i++;
