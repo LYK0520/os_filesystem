@@ -1110,7 +1110,7 @@ void cd(int parinoAddr,char name[])	//进入当前目录下的name目录
 						for(k=strlen(Cur_Dir_Name);k>=0;k--)
 							if(Cur_Dir_Name[k]=='/')//找到上一级目录
 								break;
-						Cur_Dir_Name[k]='\0';
+						Cur_Dir_Name[k]='\0';//截断的文件结构能够知道前面的是什么
 						if(strlen(Cur_Dir_Name)==0)//当前目录为根目录
 							Cur_Dir_Name[0]='/',Cur_Dir_Name[1]='\0';//根目录
 					}
